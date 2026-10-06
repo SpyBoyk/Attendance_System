@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-import { GraduationCap } from "lucide-react";
+import { Building2, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -28,7 +28,7 @@ import { SearchInput } from "@/components/ui/search-input";
 import { SortableHeader, type SortDir } from "@/components/SortableHeader";
 import { useClientPagination } from "@/hooks/useClientPagination";
 import { cn } from "@/lib/cn";
-import { CHAMFER } from "@/lib/shapes";
+import { CHAMFER, CHAMFER_OUTLINE } from "@/lib/shapes";
 
 type SortField = "name" | "academic_year";
 
@@ -167,7 +167,7 @@ export function SectionsPage() {
           <CardTitle>All sections</CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             <SearchInput value={search} onChange={setSearch} className="w-48" />
-            <Select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} className="w-36">
+            <Select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} className="w-36" icon={Building2}>
               <option value="">All departments</option>
               {departmentsQuery.data?.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -295,7 +295,7 @@ export function SectionsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn(CHAMFER, "mr-2")}
+                      className={cn(CHAMFER_OUTLINE, "mr-2")}
                       onClick={() => {
                         setEnrollTarget({ sectionId: s.id, courseId: coursesQuery.data?.[0]?.id ?? "" });
                         setSelectedStudents([]);
@@ -303,7 +303,7 @@ export function SectionsPage() {
                     >
                       Manage roster
                     </Button>
-                    <Button variant="outline" size="sm" className={CHAMFER} onClick={() => setPendingDelete({ id: s.id, name: s.name })}>
+                    <Button variant="outline" size="sm" className={CHAMFER_OUTLINE} onClick={() => setPendingDelete({ id: s.id, name: s.name })}>
                       Delete
                     </Button>
                   </td>

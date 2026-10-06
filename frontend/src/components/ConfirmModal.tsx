@@ -1,5 +1,5 @@
 import { Button, type ButtonProps } from "@/components/ui/button";
-import { CHAMFER } from "@/lib/shapes";
+import { CHAMFER, CHAMFER_OUTLINE } from "@/lib/shapes";
 
 export function ConfirmModal({
   message,
@@ -23,7 +23,7 @@ export function ConfirmModal({
       >
         <p className="text-sm font-medium text-ink">{message}</p>
         <div className="mt-4 flex justify-end gap-2">
-          <Button variant="outline" size="sm" className={CHAMFER} onClick={onCancel}>
+          <Button variant="outline" size="sm" className={CHAMFER_OUTLINE} onClick={onCancel}>
             Cancel
           </Button>
           <Button variant={confirmVariant} size="sm" className={CHAMFER} onClick={onConfirm}>

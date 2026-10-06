@@ -29,7 +29,12 @@ export function clearStoredAuth() {
   window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 }
 
-export const api = axios.create({ baseURL: "/api/v1" });
+// Local dev: Vite's dev-server proxy rewrites "/api/*" to localhost:8000 (see
+// vite.config.ts), so the relative path works with no env var needed. In
+// production the frontend (Vercel) and backend (Render) are different
+// domains, so VITE_API_BASE_URL must be set to the Render backend's full
+// URL (e.g. "https://your-backend.onrender.com/api/v1") at Vercel build time.
+export const api = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL || "/api/v1" });
 
 api.interceptors.request.use((config) => {
   const auth = getStoredAuth();

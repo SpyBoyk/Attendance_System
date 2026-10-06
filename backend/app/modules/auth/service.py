@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import numpy as np
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -48,6 +50,8 @@ def authenticate(db: Session, email: str, password: str) -> tuple[User, str]:
         raise InvalidCredentialsError("Incorrect email or password")
     if user.role != UserRole.ADMIN:
         raise ManualLoginNotAllowedError("This account must sign in with face recognition")
+    user.last_login_at = datetime.now(timezone.utc)
+    db.commit()
     token = create_access_token(user.id, user.email, user.role.value)
     return user, token
 
@@ -81,6 +85,8 @@ def login_via_face(db: Session, photo_bytes: bytes) -> tuple[User, str]:
     if user is None or not user.is_active:
         raise NoFaceMatchError("Account not found or inactive")
 
+    user.last_login_at = datetime.now(timezone.utc)
+    db.commit()
     token = create_access_token(user.id, user.email, user.role.value)
     return user, token
 

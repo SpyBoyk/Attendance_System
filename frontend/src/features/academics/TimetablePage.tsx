@@ -20,7 +20,7 @@ import { SearchInput } from "@/components/ui/search-input";
 import { SortableHeader, type SortDir } from "@/components/SortableHeader";
 import { useClientPagination } from "@/hooks/useClientPagination";
 import { cn } from "@/lib/cn";
-import { CHAMFER } from "@/lib/shapes";
+import { CHAMFER, CHAMFER_OUTLINE } from "@/lib/shapes";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -321,7 +321,7 @@ export function TimetablePage() {
                     </span>
                   </td>
                   <td className="px-3 py-2.5 text-right">
-                    <Button variant="outline" size="sm" className={CHAMFER} onClick={() => setPendingDelete(t.id)}>
+                    <Button variant="outline" size="sm" className={CHAMFER_OUTLINE} onClick={() => setPendingDelete(t.id)}>
                       Remove
                     </Button>
                   </td>

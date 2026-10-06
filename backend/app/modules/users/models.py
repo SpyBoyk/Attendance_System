@@ -31,6 +31,7 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     department: Mapped["Department | None"] = relationship(
         "Department", foreign_keys=[department_id], back_populates="users"

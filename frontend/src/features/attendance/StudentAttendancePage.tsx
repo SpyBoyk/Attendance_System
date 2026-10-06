@@ -2,8 +2,6 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarCheck2, CheckCircle2, Clock3, ListChecks, MinusCircle, XCircle } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
-import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-
 import { listCourses, listSections } from "@/api/academics";
 import { getStudentHistory } from "@/api/attendance";
 import { listUsers } from "@/api/users";
@@ -11,12 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { BackButton } from "@/components/BackButton";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartTooltip } from "@/components/ui/chart-tooltip";
+import { StatusColumnChart } from "@/components/charts/StatusColumnChart";
 import { EmptyTableRow } from "@/components/ui/empty-state";
 import { KpiTile } from "@/components/KpiTile";
 import { useAuth } from "@/hooks/useAuth";
 import { ATTENDANCE_STATUS_LABEL } from "@/lib/labels";
-import { CHART_AXIS, CHART_GRID, CHART_LABEL, CHART_LINE } from "@/lib/chart";
+import { CHART_VARS } from "@/lib/highchartsTheme";
 import type { AttendanceStatus } from "@/types";
 
 const STATUS_VARIANT: Record<AttendanceStatus, "good" | "warn" | "neutral"> = {
@@ -71,7 +69,7 @@ export function StudentAttendancePage() {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([month, b]) => ({
         label: new Date(`${month}-01`).toLocaleDateString(undefined, { month: "short", year: "2-digit" }),
-        rate: Math.round((b.present / b.total) * 100),
+        value: Math.round((b.present / b.total) * 100),
       }));
   }, [closedHistory]);
 
@@ -105,23 +103,8 @@ export function StudentAttendancePage() {
           <CardHeader>
             <CardTitle>Monthly attendance</CardTitle>
           </CardHeader>
-          <div className="h-56 px-2 py-3">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthly} margin={{ top: 8, right: 16, bottom: 0, left: -16 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: CHART_AXIS }} axisLine={{ stroke: CHART_GRID }} tickLine={false} />
-                <YAxis
-                  domain={[0, 100]}
-                  tick={{ fontSize: 11, fill: CHART_AXIS }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={36}
-                  tickFormatter={(v) => `${v}%`}
-                />
-                <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="rate" fill={CHART_LINE} radius={[4, 4, 0, 0]} maxBarSize={40} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="px-2 py-3">
+            <StatusColumnChart data={monthly} seriesName="Attendance" color={CHART_VARS.good} height={220} />
           </div>
         </Card>
       )}

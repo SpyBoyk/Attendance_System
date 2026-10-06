@@ -20,6 +20,19 @@ export interface Defaulter {
   sessions_total: number;
 }
 
+export interface StatusBreakdown {
+  present: number;
+  late: number;
+  excused: number;
+  absent: number;
+}
+
+export interface WeekdayRate {
+  weekday: number;
+  weekday_name: string;
+  rate: number;
+}
+
 export interface Overview {
   start_date: string;
   end_date: string;
@@ -28,6 +41,9 @@ export interface Overview {
   trend: TrendPoint[];
   by_department: DepartmentRate[];
   defaulters: Defaulter[];
+  status_breakdown: StatusBreakdown;
+  by_weekday: WeekdayRate[];
+  staff_by_department: DepartmentRate[];
 }
 
 export async function getOverview(params?: {

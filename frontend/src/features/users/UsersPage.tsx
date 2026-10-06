@@ -21,7 +21,7 @@ import { Pagination } from "@/components/Pagination";
 import { SearchInput } from "@/components/ui/search-input";
 import { cn } from "@/lib/cn";
 import { ROLE_LABEL } from "@/lib/labels";
-import { CHAMFER } from "@/lib/shapes";
+import { CHAMFER, CHAMFER_OUTLINE } from "@/lib/shapes";
 import type { UserRole } from "@/types";
 
 const ROLES: UserRole[] = ["ADMIN", "HOD", "TEACHER", "STUDENT"];
@@ -33,7 +33,7 @@ const ROLE_ICON: Record<UserRole, typeof ShieldCheck> = {
   STUDENT: GraduationCap,
 };
 
-type SortField = "full_name" | "email" | "role" | "is_active";
+type SortField = "full_name" | "email" | "role" | "is_active" | "last_login_at";
 type SortDir = "asc" | "desc";
 
 function SortableHeader({
@@ -104,8 +104,8 @@ export function UsersPage() {
     const items = usersQuery.data?.items ?? [];
     if (!sortField) return items;
     const sorted = [...items].sort((a: User, b: User) => {
-      const av = sortField === "is_active" ? Number(a.is_active) : a[sortField];
-      const bv = sortField === "is_active" ? Number(b.is_active) : b[sortField];
+      const av = sortField === "is_active" ? Number(a.is_active) : a[sortField] ?? "";
+      const bv = sortField === "is_active" ? Number(b.is_active) : b[sortField] ?? "";
       if (av < bv) return -1;
       if (av > bv) return 1;
       return 0;
@@ -302,12 +302,15 @@ export function UsersPage() {
                 <th className="px-3 py-2.5">
                   <SortableHeader label="Status" field="is_active" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
                 </th>
+                <th className="px-3 py-2.5">
+                  <SortableHeader label="Last Login" field="last_login_at" sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
+                </th>
                 <th className="px-3 py-2.5 text-right text-[11px] font-bold tracking-wider text-brand-700 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-hairline">
               {sortedItems.length === 0 && (
-                <EmptyTableRow colSpan={6} title="No users found" subtitle="Try adjusting your search or role filter." />
+                <EmptyTableRow colSpan={7} title="No users found" subtitle="Try adjusting your search or role filter." />
               )}
               {sortedItems.map((u) => {
                 const RoleIcon = ROLE_ICON[u.role];
@@ -359,12 +362,17 @@ export function UsersPage() {
                         {u.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-ink-faint">
+                      {u.last_login_at
+                        ? new Date(u.last_login_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "2-digit" })
+                        : "Never"}
+                    </td>
                     <td className="px-3 py-2.5 text-right whitespace-nowrap">
                       {u.is_active ? (
                         <Button
                           variant="outline"
                           size="sm"
-                          className={CHAMFER}
+                          className={CHAMFER_OUTLINE}
                           onClick={() => setPendingDeactivate({ id: u.id, name: u.full_name })}
                         >
                           Deactivate

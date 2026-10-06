@@ -9,8 +9,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
   Users as UsersIcon,
   X,
 } from "lucide-react";
@@ -34,11 +32,11 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { to: "/admin", label: "Dashboard", subtitle: "Institution overview", icon: LayoutDashboard, roles: ["ADMIN"], group: "Overview" },
-  { to: "/admin/users", label: "Users", subtitle: "Manage accounts", icon: UsersIcon, roles: ["ADMIN"], group: "Academics" },
   { to: "/admin/departments", label: "Departments", subtitle: "Academic departments", icon: Building2, roles: ["ADMIN"], group: "Academics" },
   { to: "/admin/courses", label: "Courses", subtitle: "Course catalog", icon: Layers, roles: ["ADMIN"], group: "Academics" },
   { to: "/admin/sections", label: "Sections & Roster", subtitle: "Class sections", icon: GraduationCap, roles: ["ADMIN"], group: "Academics" },
   { to: "/admin/timetable", label: "Timetable", subtitle: "Weekly schedule", icon: CalendarClock, roles: ["ADMIN"], group: "Academics" },
+  { to: "/admin/users", label: "Users", subtitle: "Manage accounts", icon: UsersIcon, roles: ["ADMIN"], group: "User Management" },
   { to: "/teacher", label: "Today's Classes", subtitle: "Start taking attendance", icon: CalendarClock, roles: ["TEACHER", "HOD"], group: "Classes" },
   { to: "/teacher/history", label: "History", subtitle: "Past sessions", icon: LayoutDashboard, roles: ["TEACHER", "HOD"], group: "Classes" },
   { to: "/teacher/attendance", label: "My Attendance", subtitle: "Mark your presence", icon: CalendarCheck2, roles: ["TEACHER", "HOD"], group: "Classes" },
@@ -90,7 +88,7 @@ export function AppLayout() {
   const { title, subtitle } = pageMeta(location.pathname);
 
   const navLinks = (onNavigate?: () => void, rail = false) => (
-    <nav className="thin-scroll flex-1 space-y-5 overflow-y-auto p-3">
+    <nav className="no-scrollbar min-h-0 flex-1 space-y-5 overflow-y-auto p-3">
       {groups.map((g) => (
         <div key={g.group}>
           {!rail && (
@@ -187,14 +185,20 @@ export function AppLayout() {
           <Menu className="size-5" />
         </button>
 
-        <div className="flex items-center gap-2">
-          <img src="/college_logo-1.png" alt="GITM crest" className="size-8 shrink-0" />
-          <div className="hidden leading-tight sm:block">
-            <p className="text-sm font-bold tracking-tight text-ink">GIT</p>
-          </div>
-        </div>
+        <img src="/GIT-logo-new.png" alt="Gharda Institute of Technology" className="h-10 w-auto shrink-0 sm:h-12" />
 
-        <span className="hidden h-9 w-px bg-hairline sm:block" />
+        {/* Sidebar toggle -- a pointing-hand glyph whose finger aims at the
+            sidebar edge: left when open (points at it to collapse it),
+            right when collapsed (points where it will reopen). */}
+        <button
+          onClick={() => setCollapsed((c) => !c)}
+          className="ml-3 hidden h-8 w-12 shrink-0 items-center justify-center bg-brand-700 text-white shadow-sm transition-colors [clip-path:polygon(7px_0,100%_0,calc(100%-7px)_100%,0_100%)] hover:bg-brand-800 md:flex"
+          title={collapsed ? "Expand sidebar" : "Minimize sidebar"}
+        >
+          <span aria-hidden="true" className="text-xl leading-none">
+            {collapsed ? "\u{1F449}" : "\u{1F448}"}
+          </span>
+        </button>
 
         <div className="hidden min-w-0 leading-tight sm:block">
           <p className="truncate text-[13px] font-bold text-ink">{title}</p>
@@ -202,18 +206,6 @@ export function AppLayout() {
         </div>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
-          {/* Sidebar toggle -- lives on the right with the rest of the chrome
-              controls, swaps icon to reflect the sidebar's current state. */}
-          <button
-            onClick={() => setCollapsed((c) => !c)}
-            className="hidden h-8 w-10 shrink-0 items-center justify-center bg-brand-700 text-white shadow-sm transition-colors [clip-path:polygon(7px_0,100%_0,calc(100%-7px)_100%,0_100%)] hover:bg-brand-800 md:flex"
-            title={collapsed ? "Expand sidebar" : "Minimize sidebar"}
-          >
-            {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
-          </button>
-
-          <span className="hidden h-9 w-px bg-hairline sm:block" />
-
           <ThemeSwitcher />
 
           <span className="hidden h-9 w-px bg-hairline sm:block" />
@@ -225,10 +217,11 @@ export function AppLayout() {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1">
-        {/* Mobile drawer */}
+      <div className="relative flex min-h-0 flex-1">
+        {/* Mobile drawer -- absolute within this row (not fixed to the
+            viewport) so it sits below the header instead of covering it. */}
         {mobileNavOpen && (
-          <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 z-40 md:hidden">
             <div className="absolute inset-0 bg-black/40" onClick={() => setMobileNavOpen(false)} />
             <div className="absolute inset-y-0 left-0 flex w-60 flex-col bg-surface shadow-lg">
               <div className="flex items-center justify-end border-b border-hairline px-3 py-3">
@@ -255,14 +248,19 @@ export function AppLayout() {
             collapsed ? "w-16" : "w-60",
           )}
         >
-          <div className={cn("flex flex-1 flex-col", collapsed ? "min-w-16" : "min-w-60")}>
+          <div className={cn("flex min-h-0 flex-1 flex-col", collapsed ? "min-w-16" : "min-w-60")}>
             {navLinks(undefined, collapsed)}
             {sidebarFooter(collapsed)}
           </div>
         </aside>
 
-        <main key={location.pathname} className="view-fade min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
-          <Outlet />
+        <main key={location.pathname} className="view-fade flex min-w-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6 md:p-8">
+          <div className="flex-1">
+            <Outlet />
+          </div>
+          <footer className="mt-8 border-t border-hairline pt-3 text-center text-[11px] text-ink-faint">
+            © {new Date().getFullYear()} GIT Attendance System. All rights reserved. Designed by Pranav.
+          </footer>
         </main>
       </div>
     </div>

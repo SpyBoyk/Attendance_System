@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-import { Layers } from "lucide-react";
+import { Building2, Layers } from "lucide-react";
 import { toast } from "sonner";
 
 import { createCourse, deleteCourse, listCourses, listDepartments } from "@/api/academics";
@@ -19,7 +19,7 @@ import { SearchInput } from "@/components/ui/search-input";
 import { SortableHeader, type SortDir } from "@/components/SortableHeader";
 import { useClientPagination } from "@/hooks/useClientPagination";
 import { cn } from "@/lib/cn";
-import { CHAMFER } from "@/lib/shapes";
+import { CHAMFER, CHAMFER_OUTLINE } from "@/lib/shapes";
 
 type SortField = "code" | "name" | "credits";
 
@@ -130,7 +130,7 @@ export function CoursesPage() {
           <CardTitle>All courses</CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             <SearchInput value={search} onChange={setSearch} className="w-48" />
-            <Select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} className="w-36">
+            <Select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} className="w-36" icon={Building2}>
               <option value="">All departments</option>
               {departmentsQuery.data?.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -255,7 +255,7 @@ export function CoursesPage() {
                   <td className="px-3 py-2.5 text-[11px] whitespace-nowrap text-ink-faint">{departmentName(c.department_id)}</td>
                   <td className="px-3 py-2.5">{c.credits}</td>
                   <td className="px-3 py-2.5 text-right">
-                    <Button variant="outline" size="sm" className={CHAMFER} onClick={() => setPendingDelete({ id: c.id, name: c.name })}>
+                    <Button variant="outline" size="sm" className={CHAMFER_OUTLINE} onClick={() => setPendingDelete({ id: c.id, name: c.name })}>
                       Delete
                     </Button>
                   </td>

@@ -5,12 +5,20 @@ from sqlalchemy.orm import Session
 
 from app.modules.academics.models import ClassSection, Department, Enrollment
 from app.modules.attendance.models import AttendanceEvent, AttendanceSession, AttendanceStatus, SessionStatus
-from app.modules.reports.schemas import DefaulterOut, DepartmentRateOut, OverviewOut, TrendPointOut
+from app.modules.reports.schemas import (
+    DefaulterOut,
+    DepartmentRateOut,
+    OverviewOut,
+    StatusBreakdownOut,
+    TrendPointOut,
+    WeekdayRateOut,
+)
 from app.modules.staff_attendance.service import get_staff_attendance_rate
 from app.modules.users.models import User, UserRole
 
 DEFAULTER_THRESHOLD = 75.0
 MAX_DEFAULTERS = 20
+WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
 class NotPermittedError(Exception):
@@ -52,6 +60,7 @@ def get_overview(
     sessions = list(db.scalars(session_q))
 
     staff_rate = get_staff_attendance_rate(db, department_id, start_date, end_date)
+    staff_by_department = _staff_by_department(db, department_id, start_date, end_date)
 
     if not sessions:
         return OverviewOut(
@@ -62,6 +71,9 @@ def get_overview(
             trend=[],
             by_department=[],
             defaulters=[],
+            status_breakdown=StatusBreakdownOut(present=0, late=0, excused=0, absent=0),
+            by_weekday=[],
+            staff_by_department=staff_by_department,
         )
 
     session_ids = [s.id for s in sessions]
@@ -74,7 +86,9 @@ def get_overview(
         roster_by_section.setdefault(section_id, set()).add(student_id)
 
     present_by_session: dict[str, set[str]] = {}
+    status_counts = {AttendanceStatus.PRESENT: 0, AttendanceStatus.LATE: 0, AttendanceStatus.EXCUSED: 0}
     for event in db.scalars(select(AttendanceEvent).where(AttendanceEvent.session_id.in_(session_ids))):
+        status_counts[event.status] = status_counts.get(event.status, 0) + 1
         if event.status in (AttendanceStatus.PRESENT, AttendanceStatus.LATE):
             present_by_session.setdefault(event.session_id, set()).add(event.student_id)
 
@@ -114,6 +128,23 @@ def get_overview(
 
     trend = [TrendPointOut(date=d, rate=_rate(p, t)) for d, (p, t) in sorted(daily.items())]
 
+    weekday_totals: dict[int, list[int]] = {}
+    for d, (p, t) in daily.items():
+        bucket = weekday_totals.setdefault(d.weekday(), [0, 0])
+        bucket[0] += p
+        bucket[1] += t
+    by_weekday = [
+        WeekdayRateOut(weekday=wd, weekday_name=WEEKDAY_NAMES[wd], rate=_rate(p, t))
+        for wd, (p, t) in sorted(weekday_totals.items())
+    ]
+
+    status_breakdown = StatusBreakdownOut(
+        present=status_counts[AttendanceStatus.PRESENT],
+        late=status_counts[AttendanceStatus.LATE],
+        excused=status_counts[AttendanceStatus.EXCUSED],
+        absent=max(0, total_possible - sum(status_counts.values())),
+    )
+
     department_names = {d.id: d.name for d in db.scalars(select(Department))}
     by_department = sorted(
         (
@@ -152,4 +183,24 @@ def get_overview(
         trend=trend,
         by_department=by_department,
         defaulters=defaulters,
+        status_breakdown=status_breakdown,
+        by_weekday=by_weekday,
+        staff_by_department=staff_by_department,
     )
+
+
+def _staff_by_department(
+    db: Session, department_id: str | None, start_date: date, end_date: date
+) -> list[DepartmentRateOut]:
+    """Only meaningful institution-wide -- once a single department is
+    already selected, a per-department breakdown is trivially one row, so
+    skip the N extra queries and let the caller show the overall staff rate
+    instead."""
+    if department_id:
+        return []
+    rows = []
+    for dept in db.scalars(select(Department).order_by(Department.name)):
+        rate = get_staff_attendance_rate(db, dept.id, start_date, end_date)
+        if rate is not None:
+            rows.append(DepartmentRateOut(department_id=dept.id, department_name=dept.name, rate=rate))
+    return rows

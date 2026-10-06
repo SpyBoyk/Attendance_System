@@ -1,4 +1,4 @@
-import HighchartsReact from "highcharts-react-official";
+import { HighchartsReact } from "highcharts-react-official";
 
 import Highcharts, { CHART_VARS, ensureHighchartsTheme, resolveCssColor } from "@/lib/highchartsTheme";
 

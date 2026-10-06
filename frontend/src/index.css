@@ -208,6 +208,17 @@ body {
   background: transparent;
 }
 
+/* Scrolls normally but shows no scrollbar track/thumb at all -- used for
+   the sidebar nav, where a visible scrollbar reads as clutter. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Sidebar collapse transition */
 .sidebar-panel {
   transition: width 0.2s ease, opacity 0.2s ease;

@@ -17,7 +17,7 @@ import { SearchInput } from "@/components/ui/search-input";
 import { SortableHeader, type SortDir } from "@/components/SortableHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useClientPagination } from "@/hooks/useClientPagination";
-import { CHAMFER } from "@/lib/shapes";
+import { CHAMFER, CHAMFER_OUTLINE } from "@/lib/shapes";
 import { SESSION_STATUS_LABEL } from "@/lib/labels";
 import type { SessionStatus } from "@/types";
 
@@ -125,7 +125,7 @@ export function HistoryPage() {
                     <Badge variant={s.status === "OPEN" ? "warn" : "neutral"}>{SESSION_STATUS_LABEL[s.status]}</Badge>
                   </td>
                   <td className="px-3 py-2.5 text-right">
-                    <Button variant="outline" size="sm" className={CHAMFER} onClick={() => navigate(`/teacher/sessions/${s.id}`)}>
+                    <Button variant="outline" size="sm" className={CHAMFER_OUTLINE} onClick={() => navigate(`/teacher/sessions/${s.id}`)}>
                       View
                     </Button>
                   </td>

@@ -61,6 +61,21 @@ export function ensureHighchartsTheme() {
     },
     credits: { enabled: false },
     title: { text: undefined },
+    legend: {
+      enabled: true,
+      itemStyle: { fontSize: "11px", fontWeight: "600", color: CHART_VARS.inkSoft },
+      itemHoverStyle: { color: CHART_VARS.ink },
+      symbolWidth: 10,
+      symbolRadius: 2,
+      margin: 10,
+      padding: 4,
+    },
+    plotOptions: {
+      series: {
+        animation: { duration: 350 },
+        states: { hover: { brightness: 0.08, halo: { size: 5 } } },
+      },
+    },
   });
 }
 
@@ -76,6 +91,37 @@ export function verticalGradient(base: string): Highcharts.GradientColorObject {
     stops: [
       [0, hex],
       [1, Highcharts.color(hex).setOpacity(0.55).get("rgba") as string],
+    ],
+  };
+}
+
+/** A lighter variant of `verticalGradient` for a bar/column's hover state --
+ * gradient fills don't get Highcharts' default brighten-on-hover treatment
+ * (it can't parse a gradient descriptor as a single color), so this gives
+ * hover its own visibly-different fill instead of silently doing nothing. */
+export function verticalGradientHover(base: string): Highcharts.GradientColorObject {
+  const hex = resolveCssColor(base);
+  const brightened = Highcharts.color(hex).brighten(0.18).get("rgb") as string;
+  return {
+    linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+    stops: [
+      [0, brightened],
+      [1, Highcharts.color(brightened).setOpacity(0.7).get("rgba") as string],
+    ],
+  };
+}
+
+/** A soft top-to-near-transparent fade -- the "area chart" look, distinct
+ * from the bolder bar/column gradient above (which stays mostly opaque
+ * throughout so discrete bars read clearly; an area fill covers much more
+ * of the chart, so it needs to fade out instead of staying solid). */
+export function areaFadeGradient(base: string): Highcharts.GradientColorObject {
+  const hex = resolveCssColor(base);
+  return {
+    linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+    stops: [
+      [0, Highcharts.color(hex).setOpacity(0.4).get("rgba") as string],
+      [1, Highcharts.color(hex).setOpacity(0.03).get("rgba") as string],
     ],
   };
 }

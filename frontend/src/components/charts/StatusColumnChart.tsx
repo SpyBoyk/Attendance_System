@@ -1,6 +1,6 @@
-import HighchartsReact from "highcharts-react-official";
+import { HighchartsReact } from "highcharts-react-official";
 
-import Highcharts, { CHART_VARS, REPORT_TOOLTIP, ensureHighchartsTheme, verticalGradient } from "@/lib/highchartsTheme";
+import Highcharts, { CHART_VARS, REPORT_TOOLTIP, ensureHighchartsTheme, verticalGradient, verticalGradientHover } from "@/lib/highchartsTheme";
 
 ensureHighchartsTheme();
 
@@ -23,22 +23,28 @@ export function StatusColumnChart({
   height?: number;
 }) {
   const options: Highcharts.Options = {
-    chart: { type: "column", height },
+    chart: { type: "column", height, marginTop: 28 },
     xAxis: {
       categories: data.map((d) => d.label),
-      labels: { style: { fontSize: "10px", color: CHART_VARS.inkSoft } },
+      labels: {
+        style: { fontSize: "11px", color: CHART_VARS.inkSoft },
+        rotation: data.length > 4 ? -20 : 0,
+      },
       lineColor: CHART_VARS.hairline,
     },
     yAxis: { title: { text: undefined }, allowDecimals: false, gridLineColor: CHART_VARS.hairline, visible: false },
     tooltip: { ...REPORT_TOOLTIP, pointFormat: `${seriesName}: <b>{point.y}${valueSuffix}</b>` },
-    legend: { enabled: false },
     plotOptions: {
       column: {
         borderRadius: 0,
         borderWidth: 0,
+        color: verticalGradient(color),
+        states: { hover: { color: verticalGradientHover(color) } },
         dataLabels: {
           enabled: true,
-          format: `{y}${valueSuffix}`,
+          format: `{point.y:.0f}${valueSuffix}`,
+          crop: false,
+          overflow: "allow",
           style: { fontSize: "10px", fontWeight: "700", color: CHART_VARS.inkSoft, textOutline: "none" },
         },
       },
@@ -47,7 +53,7 @@ export function StatusColumnChart({
       {
         type: "column",
         name: seriesName,
-        data: data.map((d) => ({ y: d.value, color: verticalGradient(color) })),
+        data: data.map((d) => d.value),
       },
     ],
   };

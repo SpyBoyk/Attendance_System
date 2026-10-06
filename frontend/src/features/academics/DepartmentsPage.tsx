@@ -20,7 +20,7 @@ import { SearchInput } from "@/components/ui/search-input";
 import { SortableHeader, type SortDir } from "@/components/SortableHeader";
 import { useClientPagination } from "@/hooks/useClientPagination";
 import { cn } from "@/lib/cn";
-import { CHAMFER } from "@/lib/shapes";
+import { CHAMFER, CHAMFER_OUTLINE } from "@/lib/shapes";
 
 type SortField = "code" | "name";
 
@@ -237,7 +237,7 @@ export function DepartmentsPage() {
                     </Select>
                   </td>
                   <td className="px-3 py-2.5 text-right">
-                    <Button variant="outline" size="sm" className={CHAMFER} onClick={() => setPendingDelete({ id: d.id, name: d.name })}>
+                    <Button variant="outline" size="sm" className={CHAMFER_OUTLINE} onClick={() => setPendingDelete({ id: d.id, name: d.name })}>
                       Delete
                     </Button>
                   </td>

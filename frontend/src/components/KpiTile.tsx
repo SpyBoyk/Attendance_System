@@ -28,21 +28,21 @@ export function KpiTile({
   const colors = ACCENTS[accent];
   return (
     <div
-      className="group animate-kpi-in border border-transparent bg-surface p-3.5 shadow-sm transition-all duration-200 ease-out [clip-path:polygon(10px_0,100%_0,calc(100%-10px)_100%,0_100%)] hover:-translate-y-0.5 hover:border-hairline-strong hover:shadow-md"
+      className="group animate-kpi-in border border-transparent bg-surface p-2.5 shadow-sm transition-all duration-200 ease-out [clip-path:polygon(10px_0,100%_0,calc(100%-10px)_100%,0_100%)] hover:-translate-y-0.5 hover:border-hairline-strong hover:shadow-md"
       style={{ animationDelay: `${delayMs}ms` }}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <span
           className={cn(
-            "flex h-6 w-6 items-center justify-center rounded-md transition-transform duration-300 group-hover:scale-110",
+            "flex h-5 w-5 shrink-0 items-center justify-center rounded-md transition-transform duration-300 group-hover:scale-110",
             colors.badge,
           )}
         >
-          <Icon className="h-3.5 w-3.5" />
+          <Icon className="h-3 w-3" />
         </span>
-        <span className={cn("text-[11px] font-bold tracking-wider uppercase", colors.text)}>{label}</span>
+        <span className={cn("truncate text-[10px] font-bold tracking-wide uppercase", colors.text)}>{label}</span>
       </div>
-      <p className={cn("mt-2 font-mono text-xl font-bold tracking-tight", colors.text)}>{value}</p>
+      <p className={cn("mt-1.5 font-mono text-lg font-bold tracking-tight", colors.text)}>{value}</p>
     </div>
   );
 }

@@ -1,32 +1,27 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CalendarClock, TrendingUp, UserCog } from "lucide-react";
+import { AlertTriangle, Building2, CalendarClock, TrendingUp, UserCog } from "lucide-react";
 import { useNavigate } from "react-router";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  LabelList,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 import { listDepartments } from "@/api/academics";
 import { getOverview } from "@/api/reports";
 import { BackButton } from "@/components/BackButton";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartTooltip } from "@/components/ui/chart-tooltip";
-import { DonutWithTotal } from "@/components/ui/donut-with-total";
+import { ChartSkeleton } from "@/components/charts/ChartSkeleton";
+import { DefaulterBarChart } from "@/components/charts/DefaulterBarChart";
+import { EmptyState } from "@/components/charts/EmptyState";
+import { StatusColumnChart } from "@/components/charts/StatusColumnChart";
+import { StatusDonutChart } from "@/components/charts/StatusDonutChart";
+import { TrendAreaChart } from "@/components/charts/TrendAreaChart";
 import { EmptyTableRow } from "@/components/ui/empty-state";
+import { Pagination } from "@/components/Pagination";
 import { Select } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import { KpiTile } from "@/components/KpiTile";
 import { useAuth } from "@/hooks/useAuth";
-import { CHART_AXIS, CHART_GRID, CHART_LABEL, CHART_LINE } from "@/lib/chart";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import { CHART_VARS } from "@/lib/highchartsTheme";
 
 const PERIODS = [
   { label: "Last 7 days", days: 7 },
@@ -60,36 +55,68 @@ export function ReportsPage() {
 
   const overview = overviewQuery.data;
   const trendData = useMemo(
-    () => (overview?.trend ?? []).map((p) => ({ ...p, label: p.date.slice(5) })),
+    () => (overview?.trend ?? []).map((p) => ({ label: p.date.slice(5), value: p.rate })),
     [overview],
   );
-  const deptData = overview?.by_department ?? [];
+  const deptData = (overview?.by_department ?? []).map((d) => ({ label: d.department_name, value: d.rate }));
+  const weekdayData = (overview?.by_weekday ?? []).map((w) => ({ label: w.weekday_name.slice(0, 3), value: w.rate }));
+  const staffDeptData = (overview?.staff_by_department ?? []).map((d) => ({ label: d.department_name, value: d.rate }));
+  const defaulterChartData = (overview?.defaulters ?? [])
+    .slice(0, 8)
+    .map((d) => ({ label: d.full_name, value: d.rate }))
+    .reverse();
+  const statusData = overview
+    ? [
+        { name: "Present", y: overview.status_breakdown.present, color: CHART_VARS.good },
+        { name: "Late", y: overview.status_breakdown.late, color: CHART_VARS.warn },
+        { name: "Excused", y: overview.status_breakdown.excused, color: CHART_VARS.brand },
+        { name: "Absent", y: overview.status_breakdown.absent, color: CHART_VARS.crit },
+      ].filter((d) => d.y > 0)
+    : [];
+  const glanceData = [
+    { label: "Students", value: overview?.attendance_rate ?? 0 },
+    { label: "Staff", value: overview?.staff_attendance_rate ?? 0 },
+  ];
+  const [defaulterSearch, setDefaulterSearch] = useState("");
+  const defaulters = useMemo(() => {
+    const q = defaulterSearch.trim().toLowerCase();
+    const all = overview?.defaulters ?? [];
+    if (!q) return all;
+    return all.filter((d) => d.full_name.toLowerCase().includes(q) || d.email.toLowerCase().includes(q));
+  }, [overview, defaulterSearch]);
+  const {
+    page: defaulterPage,
+    pageSize: defaulterPageSize,
+    total: defaulterTotal,
+    pageItems: defaulterPageItems,
+    setPage: setDefaulterPage,
+    setPageSize: setDefaulterPageSize,
+  } = useClientPagination(defaulters);
 
   return (
     <div className="w-full space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Breadcrumbs items={[{ label: "Home", onClick: () => navigate(isAdmin ? "/admin" : "/teacher") }, { label: "Reports" }]} />
-        <BackButton />
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <Select value={periodDays} onChange={(e) => setPeriodDays(Number(e.target.value))} className="w-36">
-          {PERIODS.map((p) => (
-            <option key={p.days} value={p.days}>
-              {p.label}
-            </option>
-          ))}
-        </Select>
-        {isAdmin && (
-          <Select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} className="w-44">
-            <option value="">All departments</option>
-            {departmentsQuery.data?.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={periodDays} onChange={(e) => setPeriodDays(Number(e.target.value))} className="w-36">
+            {PERIODS.map((p) => (
+              <option key={p.days} value={p.days}>
+                {p.label}
               </option>
             ))}
           </Select>
-        )}
+          {isAdmin && (
+            <Select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} className="w-44" icon={Building2}>
+              <option value="">All departments</option>
+              {departmentsQuery.data?.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </Select>
+          )}
+        </div>
+        <BackButton />
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -114,40 +141,13 @@ export function ReportsPage() {
           <CardHeader>
             <CardTitle>Attendance rate over time</CardTitle>
           </CardHeader>
-          <div className="h-64 px-2 py-3">
-            {trendData.length === 0 ? (
-              <div className="flex h-full items-center justify-center text-sm text-ink-faint">No closed sessions in this period yet.</div>
+          <div className="px-2 py-3">
+            {overviewQuery.isLoading ? (
+              <ChartSkeleton height={240} />
+            ) : trendData.length === 0 ? (
+              <EmptyState label="No closed sessions in this period yet." height={240} />
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendData} margin={{ top: 8, right: 16, bottom: 0, left: -16 }}>
-                  <defs>
-                    <linearGradient id="reportsTrendFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={CHART_LINE} stopOpacity={0.35} />
-                      <stop offset="100%" stopColor={CHART_LINE} stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: CHART_AXIS }} axisLine={{ stroke: CHART_GRID }} tickLine={false} />
-                  <YAxis
-                    domain={[0, 100]}
-                    tick={{ fontSize: 11, fill: CHART_AXIS }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={36}
-                    tickFormatter={(v) => `${v}%`}
-                  />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey="rate"
-                    stroke={CHART_LINE}
-                    strokeWidth={2}
-                    fill="url(#reportsTrendFill)"
-                    dot={{ r: 3, fill: CHART_LINE, strokeWidth: 0 }}
-                    activeDot={{ r: 5 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <TrendAreaChart data={trendData} seriesName="Attendance" color={CHART_VARS.brand} valueSuffix="%" yMin={0} yMax={100} height={240} />
             )}
           </div>
         </Card>
@@ -156,9 +156,12 @@ export function ReportsPage() {
           <CardHeader>
             <CardTitle>At a glance</CardTitle>
           </CardHeader>
-          <div className="flex items-center justify-around gap-2 px-2 py-6">
-            <DonutWithTotal value={overview?.attendance_rate ?? 0} label="Students" accent="brand" size={100} />
-            <DonutWithTotal value={overview?.staff_attendance_rate ?? 0} label="Staff" accent="sky" size={100} />
+          <div className="px-2 py-3">
+            {overviewQuery.isLoading ? (
+              <ChartSkeleton height={240} />
+            ) : (
+              <StatusColumnChart data={glanceData} seriesName="Attendance" color={CHART_VARS.brand} height={240} />
+            )}
           </div>
         </Card>
       </div>
@@ -168,31 +171,70 @@ export function ReportsPage() {
           <CardHeader>
             <CardTitle>Attendance by department</CardTitle>
           </CardHeader>
-          <div className="h-64 px-2 py-3">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={deptData} margin={{ top: 20, right: 16, bottom: 0, left: -16 }}>
-                <defs>
-                  <linearGradient id="reportsDeptFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={CHART_LINE} stopOpacity={1} />
-                    <stop offset="100%" stopColor={CHART_LINE} stopOpacity={0.55} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} vertical={false} />
-                <XAxis dataKey="department_name" tick={{ fontSize: 11, fill: CHART_AXIS }} axisLine={{ stroke: CHART_GRID }} tickLine={false} />
-                <YAxis domain={[0, 100]} hide />
-                <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="rate" fill="url(#reportsDeptFill)" radius={0} maxBarSize={48}>
-                  <LabelList dataKey="rate" position="top" formatter={(v: unknown) => `${v}%`} style={CHART_LABEL} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="px-2 py-3">
+            <StatusColumnChart data={deptData} seriesName="Attendance" color={CHART_VARS.brand} />
           </div>
         </Card>
       )}
 
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Check-in breakdown</CardTitle>
+          </CardHeader>
+          <div className="px-2 py-3">
+            {overviewQuery.isLoading ? (
+              <ChartSkeleton height={240} variant="donut" />
+            ) : statusData.length === 0 ? (
+              <EmptyState label="No closed sessions in this period yet." height={240} />
+            ) : (
+              <StatusDonutChart data={statusData} height={240} />
+            )}
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Attendance by day of week</CardTitle>
+          </CardHeader>
+          <div className="px-2 py-3">
+            {overviewQuery.isLoading ? (
+              <ChartSkeleton height={240} />
+            ) : weekdayData.length === 0 ? (
+              <EmptyState label="No closed sessions in this period yet." height={240} />
+            ) : (
+              <StatusColumnChart data={weekdayData} seriesName="Attendance" color={CHART_VARS.brand} height={240} />
+            )}
+          </div>
+        </Card>
+
+        {staffDeptData.length > 1 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Staff attendance by department</CardTitle>
+            </CardHeader>
+            <div className="px-2 py-3">
+              <StatusColumnChart data={staffDeptData} seriesName="Staff attendance" color={CHART_VARS.warn} height={240} />
+            </div>
+          </Card>
+        )}
+
+        {defaulterChartData.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Lowest attendance</CardTitle>
+            </CardHeader>
+            <div className="px-2 py-3">
+              <DefaulterBarChart data={defaulterChartData} height={Math.max(180, defaulterChartData.length * 32)} />
+            </div>
+          </Card>
+        )}
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Students below 75% attendance</CardTitle>
+          <SearchInput value={defaulterSearch} onChange={setDefaulterSearch} className="w-48" />
         </CardHeader>
         <div className="thin-scroll overflow-x-auto">
           <table className="w-full min-w-120 text-left text-[13px]">
@@ -205,10 +247,10 @@ export function ReportsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-hairline">
-              {(overview?.defaulters.length ?? 0) === 0 && (
+              {defaulterTotal === 0 && (
                 <EmptyTableRow colSpan={4} title="No defaulters" subtitle="Every student is at or above 75% attendance in this period." />
               )}
-              {overview?.defaulters.map((d) => (
+              {defaulterPageItems.map((d) => (
                 <tr key={d.student_id} className="odd:bg-surface-alt/30">
                   <td className="px-3 py-2.5 font-medium whitespace-nowrap text-ink">
                     <button
@@ -229,6 +271,13 @@ export function ReportsPage() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={defaulterPage}
+          pageSize={defaulterPageSize}
+          total={defaulterTotal}
+          onPageChange={setDefaulterPage}
+          onPageSizeChange={setDefaulterPageSize}
+        />
       </Card>
 
       {overview && (

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, EmailStr, field_validator
 
 from app.modules.users.models import UserRole
@@ -34,6 +36,7 @@ class UserOut(BaseModel):
     department_id: str | None
     is_active: bool
     must_change_password: bool
+    last_login_at: datetime | None
 
     model_config = {"from_attributes": True}
 

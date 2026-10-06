@@ -23,6 +23,19 @@ class DefaulterOut(BaseModel):
     sessions_total: int
 
 
+class StatusBreakdownOut(BaseModel):
+    present: int
+    late: int
+    excused: int
+    absent: int
+
+
+class WeekdayRateOut(BaseModel):
+    weekday: int
+    weekday_name: str
+    rate: float
+
+
 class OverviewOut(BaseModel):
     start_date: date
     end_date: date
@@ -31,3 +44,6 @@ class OverviewOut(BaseModel):
     trend: list[TrendPointOut]
     by_department: list[DepartmentRateOut]
     defaulters: list[DefaulterOut]
+    status_breakdown: StatusBreakdownOut
+    by_weekday: list[WeekdayRateOut]
+    staff_by_department: list[DepartmentRateOut]

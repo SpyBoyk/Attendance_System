@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, LabelHTMLAttributes, SelectHTMLAttributes } from "react";
+import type { ComponentType, InputHTMLAttributes, LabelHTMLAttributes, SelectHTMLAttributes } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/cn";
@@ -13,11 +13,17 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
   return <input className={cn(fieldBoxClasses, className)} {...props} />;
 }
 
-export function Select({ className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+export function Select({
+  className,
+  children,
+  icon: Icon,
+  ...props
+}: SelectHTMLAttributes<HTMLSelectElement> & { icon?: ComponentType<{ className?: string }> }) {
   return (
     <div className={cn("relative", className)}>
+      {Icon && <Icon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-ink-faint" />}
       <select
-        className={cn(fieldBoxClasses, "w-full appearance-none truncate pr-7")}
+        className={cn(fieldBoxClasses, "w-full appearance-none truncate pr-7", Icon && "pl-8")}
         {...props}
       >
         {children}

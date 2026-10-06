@@ -441,6 +441,8 @@ export function LoginPage() {
                 <p className="mt-1 text-[11px] text-ink-faint">We check that it's a real face before your account is created.</p>
               </div>
             )}
+              </>
+            )}
 
             {formError && (
               <p className="mb-3 rounded-md border border-crit/20 bg-crit-soft px-3 py-2 text-xs text-crit">{formError}</p>
@@ -448,14 +450,16 @@ export function LoginPage() {
 
             <div className="grid grid-cols-2 gap-2">
               <Button
-                type={isRegister ? "button" : "submit"}
+                type={isRegister || isFaceSignIn ? "button" : "submit"}
                 variant={isRegister ? "outline" : "primary"}
                 className="[clip-path:polygon(7px_0,100%_0,calc(100%-7px)_100%,0_100%)]"
-                onClick={isRegister ? () => switchMode("signin") : undefined}
-                disabled={submitting}
+                onClick={isRegister ? () => switchMode("signin") : isFaceSignIn ? captureAndLoginFace : undefined}
+                disabled={submitting || (isFaceSignIn && !cameraOn)}
               >
                 {!isRegister && submitting ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                ) : isFaceSignIn ? (
+                  "Scan & sign in"
                 ) : (
                   "Login"
                 )}

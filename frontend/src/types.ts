@@ -8,6 +8,7 @@ export interface User {
   department_id: string | null;
   is_active: boolean;
   must_change_password: boolean;
+  last_login_at: string | null;
 }
 
 export interface Department {

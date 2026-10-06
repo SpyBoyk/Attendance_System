@@ -1,6 +1,6 @@
-import HighchartsReact from "highcharts-react-official";
+import { HighchartsReact } from "highcharts-react-official";
 
-import Highcharts, { CHART_VARS, REPORT_TOOLTIP, ensureHighchartsTheme, verticalGradient } from "@/lib/highchartsTheme";
+import Highcharts, { CHART_VARS, REPORT_TOOLTIP, areaFadeGradient, ensureHighchartsTheme } from "@/lib/highchartsTheme";
 
 ensureHighchartsTheme();
 
@@ -31,7 +31,7 @@ export function TrendAreaChart({
     chart: { type: "area", height },
     xAxis: {
       categories: data.map((d) => d.label),
-      labels: { style: { fontSize: "10px", color: CHART_VARS.inkSoft } },
+      labels: { style: { fontSize: "11px", color: CHART_VARS.inkSoft } },
       lineColor: CHART_VARS.hairline,
     },
     yAxis: {
@@ -44,12 +44,12 @@ export function TrendAreaChart({
       labels: { style: { fontSize: "11px", color: CHART_VARS.inkFaint } },
     },
     tooltip: { ...REPORT_TOOLTIP, pointFormat: `${seriesName}: <b>{point.y}${valueSuffix}</b>` },
-    legend: { enabled: false },
     plotOptions: {
       area: {
-        marker: { radius: 3 },
+        marker: { radius: 3, states: { hover: { radius: 5, lineWidth: 2 } } },
         lineWidth: 2,
-        fillColor: verticalGradient(color),
+        fillColor: areaFadeGradient(color),
+        states: { hover: { lineWidthPlus: 1 } },
       },
     },
     series: [{ type: "area", name: seriesName, data: data.map((d) => d.value), color }],
