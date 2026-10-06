@@ -1,6 +1,7 @@
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -15,6 +16,18 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 480
 
     cors_origins: str = "http://localhost:5173"
+
+    @field_validator("database_url")
+    @classmethod
+    def _normalize_postgres_driver(cls, v: str) -> str:
+        """Render's managed Postgres hands back a bare postgres(ql):// URL,
+        which SQLAlchemy defaults to the (uninstalled) psycopg2 driver.
+        Force the psycopg (v3) driver we actually install instead."""
+        if v.startswith("postgres://"):
+            return "postgresql+psycopg://" + v[len("postgres://") :]
+        if v.startswith("postgresql://"):
+            return "postgresql+psycopg://" + v[len("postgresql://") :]
+        return v
 
     @property
     def cors_origin_list(self) -> list[str]:
