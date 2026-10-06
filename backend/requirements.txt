@@ -1,0 +1,30 @@
+fastapi>=0.115,<0.116
+uvicorn[standard]>=0.30,<0.31
+python-multipart>=0.0.9,<0.1
+sqlalchemy>=2.0,<2.1
+alembic>=1.13,<2
+
+# --- Postgres (production / Render) -----------------------------------
+# DATABASE_URL=postgresql+psycopg://... (preferred) or postgresql+pg8000://...
+# (pure-Python fallback, no native libpq.dll -- useful on locked-down
+# Windows dev machines where Application Control/WDAC blocks it).
+# Local dev defaults to SQLite and needs neither of these installed.
+psycopg[binary]>=3.1,<4
+pg8000>=1.31,<2
+
+pydantic>=2.9,<3
+pydantic-settings>=2.5,<3
+python-dotenv>=1.0,<2
+
+# --- Auth ---------------------------------------------------------------
+bcrypt>=4.0,<5
+PyJWT>=2.9,<3
+email-validator>=2.1,<3
+
+# --- Face recognition (Phase 3, OpenCV bundled YuNet + SFace only) ------
+opencv-python-headless>=4.9
+numpy>=1.26
+
+# --- Dev / test only ------------------------------------------------------
+pytest>=8.0,<9
+httpx>=0.27,<1
