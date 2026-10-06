@@ -188,7 +188,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col overflow-y-auto bg-canvas text-ink md:fixed md:inset-0 md:h-screen md:w-screen md:flex-row md:overflow-hidden">
+    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden overflow-y-auto bg-canvas text-ink md:fixed md:inset-0 md:h-screen md:w-screen md:flex-row md:overflow-hidden">
       {/* Brand panel -- full hero on desktop, a compact banner on mobile so a
           phone still opens on the brand instead of a bare form. */}
       <div className="relative flex w-full shrink-0 items-center justify-center overflow-hidden bg-canvas md:h-full md:w-[60%]">

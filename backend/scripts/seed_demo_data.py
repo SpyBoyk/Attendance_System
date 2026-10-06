@@ -32,49 +32,23 @@ random.seed(42)
 ACADEMIC_YEAR = "2025-26"
 
 DEPARTMENTS = [
-    ("Computer Science & Engineering", "CSE"),
-    ("Information Technology", "IT"),
-    ("Electronics & Communication", "ECE"),
-    ("Electrical Engineering", "EE"),
-    ("Mechanical Engineering", "ME"),
-    ("Civil Engineering", "CE"),
     ("Chemical Engineering", "CHE"),
-    ("Biotechnology", "BT"),
-    ("Aerospace Engineering", "AE"),
-    ("Automobile Engineering", "AU"),
-    ("Instrumentation Engineering", "IE"),
-    ("Metallurgical Engineering", "MT"),
-    ("Mining Engineering", "MN"),
-    ("Textile Engineering", "TX"),
-    ("Agricultural Engineering", "AG"),
-    ("Environmental Engineering", "EN"),
-    ("Industrial Engineering", "IND"),
-    ("Marine Engineering", "MR"),
-    ("Petroleum Engineering", "PE"),
-    ("Robotics & Automation", "RA"),
+    ("Mechanical Engineering", "ME"),
+    ("Computer Engineering", "CMPN"),
+    ("Electronics & Telecommunication", "EXTC"),
+    ("Computer Science", "CSE"),
+    ("Information Technology", "IT"),
+    ("Artificial Intelligence & Machine Learning", "AIML"),
 ]
 
 COURSE_NAMES = {
+    "CHE": "Process Engineering",
+    "ME": "Thermodynamics",
+    "CMPN": "Computer Organization & Architecture",
+    "EXTC": "Digital Communication",
     "CSE": "Data Structures & Algorithms",
     "IT": "Web Technologies",
-    "ECE": "Digital Electronics",
-    "EE": "Power Systems",
-    "ME": "Thermodynamics",
-    "CE": "Structural Analysis",
-    "CHE": "Process Engineering",
-    "BT": "Molecular Biology",
-    "AE": "Aerodynamics",
-    "AU": "Vehicle Dynamics",
-    "IE": "Control Systems",
-    "MT": "Physical Metallurgy",
-    "MN": "Mine Surveying",
-    "TX": "Fabric Technology",
-    "AG": "Farm Machinery",
-    "EN": "Environmental Impact Assessment",
-    "IND": "Operations Research",
-    "MR": "Naval Architecture",
-    "PE": "Reservoir Engineering",
-    "RA": "Robot Kinematics",
+    "AIML": "Machine Learning Fundamentals",
 }
 
 ROOMS = ["101", "102", "201", "202", "301", "302", "Lab-1", "Lab-2", "Seminar Hall"]
@@ -165,7 +139,7 @@ def main() -> None:
         db.commit()
 
         # ---- Teachers (one per department) ----
-        teacher_names = unique_name_pool(20)
+        teacher_names = unique_name_pool(len(departments))
         teachers: list[User] = []
         for dept, name in zip(departments, teacher_names):
             title = random.choice(TEACHER_TITLES)
@@ -177,7 +151,7 @@ def main() -> None:
         db.commit()
 
         # ---- HODs (one per department, set as department head) ----
-        hod_names = unique_name_pool(20)
+        hod_names = unique_name_pool(len(departments))
         hods: list[User] = []
         for dept, name in zip(departments, hod_names):
             email = email_for(name, "hod", used_emails)
@@ -220,12 +194,10 @@ def main() -> None:
             sections.append(section)
         db.commit()
 
-        # ---- Students: 20 total, concentrated into the first 5 departments
-        # (5 sections x 4 students) so those sections have enough roster depth
-        # for a believable attendance trend/defaulter list. ----
-        student_names = unique_name_pool(20)
+        # ---- Students: 4 per department across all seeded departments ----
+        active_dept_count = len(departments)
+        student_names = unique_name_pool(active_dept_count * 4)
         students: list[User] = []
-        active_dept_count = 5
         for i, name in enumerate(student_names):
             dept = departments[i % active_dept_count]
             email = email_for(name, "student", used_emails)
